@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="html-root">
 
 <head>
     <meta charset="UTF-8">
@@ -108,7 +108,42 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
+        /* Logical Borders Helper */
+        .border-is-4 { border-inline-start-width: 4px; border-right-width: 0; border-left-width: 0; }
+        .border-is-red-500 { border-inline-start-color: #ef4444; }
+        .border-is-brand-500 { border-inline-start-color: #14b8a6; }
+        .border-is-blue-500 { border-inline-start-color: #3b82f6; }
+        .border-is-emerald-500 { border-inline-start-color: #10b981; }
+
         .hide { display: none !important; }
+
+        /* =====================================================
+           🌐 i18n LOADER SYSTEM
+           ===================================================== */
+        #i18n-loader {
+            position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            gap: 1.5rem;
+        }
+        #i18n-loader.active { opacity: 1; pointer-events: auto; }
+        .loader-spinner {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(20, 184, 166, 0.1);
+            border-top-color: #14b8a6;
+            border-radius: 50%;
+            animation: i18n-spin 0.8s linear infinite;
+        }
+        @keyframes i18n-spin { to { transform: rotate(360deg); } }
+        .loader-text {
+            color: #fff; font-weight: 700; font-size: 0.9rem;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
 
         /* =====================================================
            🔧 FIX 8: إلغاء scrollbar من حاويات المعادلات
@@ -510,10 +545,46 @@
                 text-align: center;
             }
         }
+
+        /* =====================================================
+           🌐 LANGUAGE TOGGLE SWITCH
+           ===================================================== */
+        #lang-toggle-btn {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(20,184,166,0.35);
+            border-radius: 2rem;
+            padding: 0.25rem 0.4rem 0.25rem 0.75rem;
+            cursor: pointer; transition: all 0.25s;
+            color: #cbd5e1; font-size: 0.8rem; font-weight: 700;
+            font-family: 'Cairo', sans-serif; white-space: nowrap;
+        }
+        #lang-toggle-btn:hover { background: rgba(20,184,166,0.12); border-color: #14b8a6; color: #fff; }
+        .lang-pill {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.65rem; font-weight: 900; color: #fff;
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow: 0 2px 8px rgba(20,184,166,0.5);
+        }
+        #lang-toggle-btn:hover .lang-pill { transform: scale(1.18) rotate(-8deg); }
+        /* CSS Logical Properties for RTL/LTR auto-flip */
+        html[dir="ltr"] #ai-chat-widget { right: auto; left: clamp(0.5rem,3vw,1.5rem); }
+        html[dir="ltr"] .download-option:hover { transform: translateX(4px); }
+        html[dir="ltr"] .dl-info { text-align: left; }
+        html[dir="ltr"] .dl-arrow { display: inline-block; transform: rotate(180deg); }
+        html[dir="ltr"] .download-option:hover .dl-arrow { transform: rotate(180deg) translateX(4px); }
     </style>
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- i18n Smooth Transition Loader -->
+    <div id="i18n-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text" id="loader-text">Switching Language...</div>
+    </div>
 
     <!-- Header -->
     <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
@@ -522,29 +593,33 @@
                 <div>
                     <!-- clamp(): الحجم يتكيف تلقائياً بين 1.4rem و 1.875rem -->
                     <h1 class="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-l from-brand-100 to-brand-500"
-                        style="font-size: clamp(1.25rem, 5vw, 1.875rem);">
+                        style="font-size: clamp(1.25rem, 5vw, 1.875rem);" data-i18n="site-title">
                         الفيزياء في قلب الصناعة
                     </h1>
-                    <p class="mt-1 text-slate-300" style="font-size: clamp(0.75rem, 2.5vw, 0.9375rem);">
+                    <p class="mt-1 text-slate-300" style="font-size: clamp(0.75rem, 2.5vw, 0.9375rem);" data-i18n="site-subtitle">
                         التطبيقات الهندسية المتقدمة للتماثل الأسطواني وقانون جاوس
                     </p>
                 </div>
-                <!-- Navigation + Download Button Row -->
+                <!-- Navigation + Action Buttons Row -->
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <!-- Navigation: nav-tabs class تُطبق grid 2x2 على الموبايل -->
                     <nav>
                         <div class="nav-tabs">
-                            <button onclick="switchTab('intro')" id="btn-intro" class="tab-btn active">المقدمة</button>
-                            <button onclick="switchTab('sensor')" id="btn-sensor" class="tab-btn">المستشعرات السعوية</button>
-                            <button onclick="switchTab('esp')" id="btn-esp" class="tab-btn">المرسبات الكهروستاتيكية</button>
-                            <button onclick="switchTab('faraday')" id="btn-faraday" class="tab-btn">درع فاراداي</button>
+                            <button onclick="switchTab('intro')" id="btn-intro" class="tab-btn active" data-i18n="nav-intro">المقدمة</button>
+                            <button onclick="switchTab('sensor')" id="btn-sensor" class="tab-btn" data-i18n="nav-sensor">المستشعرات السعوية</button>
+                            <button onclick="switchTab('esp')" id="btn-esp" class="tab-btn" data-i18n="nav-esp">المرسبات الكهروستاتيكية</button>
+                            <button onclick="switchTab('faraday')" id="btn-faraday" class="tab-btn" data-i18n="nav-faraday">درع فاراداي</button>
                         </div>
                     </nav>
-                    <!-- زر تحميل الأوراق البحثية -->
-                    <button id="download-header-btn" onclick="openDownloadModal()">
-                        <span>📥</span>
-                        <span>تحميل الأوراق البحثية</span>
-                    </button>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <button id="download-header-btn" onclick="openDownloadModal()">
+                            <span>📥</span>
+                            <span data-i18n="dl-btn">تحميل الأوراق البحثية</span>
+                        </button>
+                        <button id="lang-toggle-btn" onclick="toggleLang()" aria-label="Switch Language / تبديل اللغة" title="Switch Language">
+                            <span data-i18n="lang-lbl">EN</span>
+                            <span class="lang-pill" id="lang-pill">EN</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -560,8 +635,8 @@
                 <div class="w-20 h-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-6">
                     <span class="text-4xl text-brand-600">⚙️</span>
                 </div>
-                <h2 class="text-3xl font-bold text-slate-900 mb-6">من المعادلات المجردة إلى الواقع الملموس</h2>
-                <p class="text-lg text-slate-600 leading-relaxed mb-8">
+                <h2 class="text-3xl font-bold text-slate-900 mb-6" data-i18n="intro-h2">من المعادلات المجردة إلى الواقع الملموس</h2>
+                <p class="text-lg text-slate-600 leading-relaxed mb-8" data-i18n="intro-p">
                     تكتسب النظريات الفيزيائية قيمتها الحقيقية عندما تتجاوز حيز المعادلات المجردة على الورق لتصبح حلولاً
                     ملموسة تواجه التحديات الهندسية المعاصرة. في هذه المنصة التفاعلية، نستخدم الاستنتاجات الرياضية
                     للتماثل الأسطواني لفك شفرة ثلاثة من أعقد التطبيقات في القطاع الصناعي الحديث.
@@ -570,23 +645,23 @@
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
                         onclick="switchTab('sensor')">
                         <div class="text-3xl mb-3">🛢️</div>
-                        <h3 class="font-bold text-slate-800 mb-2">قياس دقيق وآمن</h3>
-                        <p class="text-sm text-slate-500">مستشعرات تعتمد على السعة الكهربائية لبيئات العمل الخطرة.</p>
+                        <h3 class="font-bold text-slate-800 mb-2" data-i18n="intro-c1-h3">قياس دقيق وآمن</h3>
+                        <p class="text-sm text-slate-500" data-i18n="intro-c1-p">مستشعرات تعتمد على السعة الكهربائية لبيئات العمل الخطرة.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
                         onclick="switchTab('esp')">
                         <div class="text-3xl mb-3">🏭</div>
-                        <h3 class="font-bold text-slate-800 mb-2">هواء نقي ومستدام</h3>
-                        <p class="text-sm text-slate-500">مرسبات تعتمد على المجال الكهربائي لاصطياد الملوثات.</p>
+                        <h3 class="font-bold text-slate-800 mb-2" data-i18n="intro-c2-h3">هواء نقي ومستدام</h3>
+                        <p class="text-sm text-slate-500" data-i18n="intro-c2-p">مرسبات تعتمد على المجال الكهربائي لاصطياد الملوثات.</p>
                     </div>
                     <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:shadow-md transition-shadow"
                         onclick="switchTab('faraday')">
                         <div class="text-3xl mb-3">📡</div>
-                        <h3 class="font-bold text-slate-800 mb-2">سلامة البيانات</h3>
-                        <p class="text-sm text-slate-500">دروع أسطوانية لحماية الإشارات من التداخل الكهرومغناطيسي.</p>
+                        <h3 class="font-bold text-slate-800 mb-2" data-i18n="intro-c3-h3">سلامة البيانات</h3>
+                        <p class="text-sm text-slate-500" data-i18n="intro-c3-p">دروع أسطوانية لحماية الإشارات من التداخل الكهرومغناطيسي.</p>
                     </div>
                 </div>
-                <div
+                <div data-i18n-html="intro-hint"
                     class="mt-8 bg-brand-50 border-brand-200 border rounded-lg p-4 inline-block text-brand-800 font-medium">
                     ✨ استعن بـ <span class="font-bold">المساعد الهندسي الذكي</span> في أسفل الشاشة لشرح المعادلات أو
                     استكشاف المزيد من التطبيقات!
@@ -598,12 +673,12 @@
         <section id="sec-sensor" class="tab-content hide">
             <div class="section-header">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-900">المستشعرات السعوية لقياس مستوى السوائل</h2>
-                    <p class="text-slate-500 mt-2">منهجية القياس اللاتلامسي في الصناعات البتروكيماوية</p>
+                    <h2 class="text-2xl font-bold text-slate-900" data-i18n="sensor-h2">المستشعرات السعوية لقياس مستوى السوائل</h2>
+                    <p class="text-slate-500 mt-2" data-i18n="sensor-sub">منهجية القياس اللاتلامسي في الصناعات البتروكيماوية</p>
                 </div>
                 <button
                     onclick="triggerAIExplainer('ما هي أهمية استخدام المستشعرات السعوية في خزانات الوقود بدلاً من العوامات التقليدية؟ أذكر دراسة حالة قصيرة.')"
-                    class="ai-trigger-btn">
+                    class="ai-trigger-btn" data-i18n="sensor-ai">
                     ✨ توليد دراسة حالة ذكية
                 </button>
             </div>
@@ -612,11 +687,11 @@
                 <!-- Text / Theory (Right Column in RTL) -->
                 <div class="lg:col-span-5 theory-col custom-scrollbar">
 
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-red-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>⚠️</span> الإشكالية الهندسية
+                            <span>⚠️</span> <span data-i18n="sensor-c1-h3">الإشكالية الهندسية</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed">
+                        <p class="text-slate-600 text-sm leading-relaxed" data-i18n="sensor-c1-p">
                             في الصناعات البتروكيماوية والدوائية، الاعتماد على "العوامات الميكانيكية" يواجه تحديات قاسية:
                             التآكل بسبب الأحماض، خطر الشرر في بيئات متفجرة، وتعطل الأجزاء المتحركة. ظهرت الحاجة الماسة
                             لنظام قياس "لا تلامسي" (Non-mechanical).
@@ -624,11 +699,11 @@
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-brand-500 relative group">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-brand-500 relative group">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>🔬</span> المقاربة الفيزيائية
+                            <span>🔬</span> <span data-i18n="sensor-c2-h3">المقاربة الفيزيائية</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n-html="sensor-c2-p">
                             يتكون المستشعر السعوي من قضيب معدني (أسطوانة داخلية $a$) وجدار الخزان (أسطوانة خارجية $b$).
                             يعتمد على "الاستقطاب العازل". الهواء له $k_{air} \approx 1$، بينما السوائل الصناعية لها $k$
                             أعلى (مثلاً الزيت $k \approx 2.5$).
@@ -638,17 +713,18 @@
                         </div>
                         <button
                             onclick="triggerAIExplainer('اشرح ببساطة شديدة المعادلة الرياضية لسعة المكثف الأسطواني وما هي العوامل التي تزيد من سعته.')"
-                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
+                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity"
+                            data-i18n="sensor-c2-btn">
                             ✨ اشرح لي هذه المعادلة
                         </button>
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-blue-500 relative group">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-blue-500 relative group">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>📐</span> النمذجة الرياضية
+                            <span>📐</span> <span data-i18n="sensor-c3-h3">النمذجة الرياضية</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n-html="sensor-c3-p">
                             النظام يعامل كمكثفين على التوازي. السعة الكلية $C_{total}$ دالة خطية في ارتفاع السائل $h$:
                         </p>
                         <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center">
@@ -657,17 +733,18 @@
                         </div>
                         <button
                             onclick="triggerAIExplainer('كيف تحولت معادلة المكثف الأسطواني إلى دالة خطية تعتمد على الارتفاع h؟ اشرح الخطوات ببساطة.')"
-                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
+                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity"
+                            data-i18n="sensor-c3-btn">
                             ✨ اشرح لي هذه الدالة الخطية
                         </button>
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-emerald-500">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-emerald-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>🔌</span> التكامل مع أنظمة التحكم (PLC)
+                            <span>🔌</span> <span data-i18n="sensor-c4-h3">التكامل مع أنظمة التحكم (PLC)</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed">
+                        <p class="text-slate-600 text-sm leading-relaxed" data-i18n="sensor-c4-p">
                             دائرة المذبذب تحول التغير في السعة إلى إشارة تيار قياسية (4-20 mA) تقرأها أنظمة SCADA كنسبة
                             مئوية دقيقة.
                         </p>
@@ -677,8 +754,8 @@
                 <!-- Interactive Simulator (Left Column) -->
                 <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
                     <div class="mb-6 pb-4 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-lg text-slate-800">محاكي الاستشعار الصناعي</h3>
-                        <span class="px-3 py-1 bg-brand-100 text-brand-800 rounded-full text-xs font-bold">Live
+                        <h3 class="font-bold text-lg text-slate-800" data-i18n="sensor-sim-h3">محاكي الاستشعار الصناعي</h3>
+                        <span class="px-3 py-1 bg-brand-100 text-brand-800 rounded-full text-xs font-bold" data-i18n="sensor-sim-status">Live
                             Simulation</span>
                     </div>
 
@@ -707,7 +784,7 @@
                             </div>
 
                             <div class="w-full max-w-xs">
-                                <label for="level-slider" class="block text-sm font-medium text-slate-700 mb-2">ارتفاع
+                                <label for="level-slider" class="block text-sm font-medium text-slate-700 mb-2" data-i18n-html="sensor-slider-lbl">ارتفاع
                                     السائل ($h$)</label>
                                 <input type="range" id="level-slider" min="0" max="100" value="0"
                                     class="w-full accent-brand-600" oninput="updateSensorSim(this.value)">
@@ -742,12 +819,12 @@
         <section id="sec-esp" class="tab-content hide">
             <div class="section-header">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-900">المرسبات الكهروستاتيكية (ESP)</h2>
-                    <p class="text-slate-500 mt-2">تنقية الانبعاثات الصناعية باستخدام التفريغ الهالي (Corona Discharge)</p>
+                    <h2 class="text-2xl font-bold text-slate-900" data-i18n="esp-h2">المرسبات الكهروستاتيكية (ESP)</h2>
+                    <p class="text-slate-500 mt-2" data-i18n="esp-sub">تنقية الانبعاثات الصناعية باستخدام التفريغ الهالي (Corona Discharge)</p>
                 </div>
                 <button
                     onclick="triggerAIExplainer('ما هو التأثير البيئي والاقتصادي لاستخدام المرسبات الكهروستاتيكية في محطات توليد الطاقة؟ أعطني مثالاً بالأرقام.')"
-                    class="ai-trigger-btn">
+                    class="ai-trigger-btn" data-i18n="esp-ai">
                     ✨ تقييم بيئي بالذكاء الاصطناعي
                 </button>
             </div>
@@ -756,11 +833,11 @@
                 <!-- Text / Theory -->
                 <div class="lg:col-span-5 theory-col custom-scrollbar">
 
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-red-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>🌫️</span> الإشكالية البيئية
+                            <span>🌫️</span> <span data-i18n="esp-c1-h3">الإشكالية البيئية</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed">
+                        <p class="text-slate-600 text-sm leading-relaxed" data-i18n="esp-c1-p">
                             محطات الطاقة ومصانع الأسمنت تنتج عوادم محملة بجسيمات سامة (PM2.5). الفلاتر النسيجية تعيق
                             تدفق الهواء (Pressure Drop) وتحترق. الحل هو توظيف "التدفق الكهربائي" لاصطياد الجسيمات دون
                             إعاقة الهواء.
@@ -768,11 +845,11 @@
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-brand-500 relative group">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-brand-500 relative group">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>⚡</span> ميكانيكا الكم والكورونا
+                            <span>⚡</span> <span data-i18n="esp-c2-h3">ميكانيكا الكم والكورونا</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n-html="esp-c2-p">
                             أنبوب معدني مؤرض يمر بمركزه سلك تفريغ رفيع جداً بجهد سالب عالي. نظراً لصغر نصف قطر السلك
                             $r$، يصل المجال $E$ لمستويات تتجاوز حد "الانهيار العازل" للهواء ($3 \times 10^6 \text{
                             V/m}$).
@@ -782,17 +859,18 @@
                         </div>
                         <button
                             onclick="triggerAIExplainer('ما هي ظاهرة التفريغ الهالي (Corona Discharge) وكيف تحدث فيزيائياً عندما يتجاوز المجال الكهربائي حد الانهيار العازل؟')"
-                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
+                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity"
+                            data-i18n="esp-c2-btn">
                             ✨ اشرح ظاهرة الكورونا
                         </button>
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-blue-500 relative group">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-blue-500 relative group">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>🧲</span> ديناميكا اصطياد الدخان
+                            <span>🧲</span> <span data-i18n="esp-c3-h3">ديناميكا اصطياد الدخان</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n="esp-c3-p">
                             يكتسب الدخان شحنة سالبة ويخضع لقوة كولوم نحو الجدار الموجب، وقوة إعاقة لزجة (Stokes).
                         </p>
                         <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center flex flex-col gap-2">
@@ -801,7 +879,8 @@
                         </div>
                         <button
                             onclick="triggerAIExplainer('اشرح التوازن بين قوة كولوم الكهربائية وقوة إعاقة ستوكس الميكانيكية لجسيم دخان داخل المرسب.')"
-                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
+                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity"
+                            data-i18n="esp-c3-btn">
                             ✨ اشرح ميكانيكا اصطياد الدخان
                         </button>
                     </div>
@@ -810,20 +889,20 @@
                 <!-- Interactive Simulator -->
                 <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
                     <div class="mb-6 pb-4 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-lg text-slate-800">تحليل المجال الكهربائي والتفريغ</h3>
+                        <h3 class="font-bold text-lg text-slate-800" data-i18n="esp-sim-h3">تحليل المجال الكهربائي والتفريغ</h3>
                         <span class="px-3 py-1 bg-brand-100 text-brand-800 rounded-full text-xs font-bold">Field
                             Analysis</span>
                     </div>
 
                     <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <div class="flex items-center justify-between mb-2">
-                            <label for="voltage-slider" class="text-sm font-bold text-slate-700">جهد سلك التفريغ
+                            <label for="voltage-slider" class="text-sm font-bold text-slate-700" data-i18n="esp-lbl-v">جهد سلك التفريغ
                                 (kV)</label>
                             <span id="voltage-val" class="font-mono text-brand-600 font-bold">50 kV</span>
                         </div>
                         <input type="range" id="voltage-slider" min="10" max="80" value="50"
                             class="w-full accent-brand-600" oninput="updateESPSim(this.value)">
-                        <p class="text-xs text-slate-500 mt-2">زيادة الجهد ترفع منحنى المجال الكهربائي. إذا تجاوز المجال
+                        <p class="text-xs text-slate-500 mt-2" data-i18n="esp-v-hint">زيادة الجهد ترفع منحنى المجال الكهربائي. إذا تجاوز المجال
                             حاجز الانهيار (الخط الأحمر)، تبدأ ظاهرة الكورونا التي تؤين الهواء وتصطاد الدخان.</p>
                     </div>
 
@@ -845,12 +924,12 @@
         <section id="sec-faraday" class="tab-content hide">
             <div class="section-header">
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-900">درع فاراداي والكابلات المحورية</h2>
-                    <p class="text-slate-500 mt-2">تطبيق قانون جاوس لضمان سلامة الإشارة (Signal Integrity) في بيئات التشويش العالي</p>
+                    <h2 class="text-2xl font-bold text-slate-900" data-i18n="faraday-h2">درع فاراداي والكابلات المحورية</h2>
+                    <p class="text-slate-500 mt-2" data-i18n="faraday-sub">تطبيق قانون جاوس لضمان سلامة الإشارة (Signal Integrity) في بيئات التشويش العالي</p>
                 </div>
                 <button
                     onclick="triggerAIExplainer('أعطني مثالاً لتطبيق درع فاراداي في الأجهزة الطبية مثل غرف الرنين المغناطيسي (MRI)، ولماذا هو حتمي للعمل؟')"
-                    class="ai-trigger-btn">
+                    class="ai-trigger-btn" data-i18n="faraday-ai">
                     ✨ دراسة حالة طبية (MRI)
                 </button>
             </div>
@@ -859,39 +938,40 @@
                 <!-- Text / Theory -->
                 <div class="lg:col-span-5 theory-col custom-scrollbar">
 
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-red-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>📡</span> أزمة التداخل (EMI)
+                            <span>📡</span> <span data-i18n="faraday-c1-h3">أزمة التداخل (EMI)</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed">
+                        <p class="text-slate-600 text-sm leading-relaxed" data-i18n="faraday-c1-p">
                             المحركات الضخمة تولد مجالات كهرومغناطيسية عنيفة. إذا مرت كابلات البيانات بالقرب منها، تتعرض
                             الإشارات الرقمية الدقيقة للتشويش والتشوه الكامل (Electromagnetic Interference).
                         </p>
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-brand-500 relative group">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-brand-500 relative group">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>🛡️</span> الدرع الأسطواني
+                            <span>🛡️</span> <span data-i18n="faraday-c2-h3">الدرع الأسطواني</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n-html="faraday-c2-p">
                             الكابل المحوري يمتلك شبكة معدنية مضفرة. عند تعرضها لمجال خارجي ($E_{ext}$)، تعيد الإلكترونات
                             الحرة ترتيب نفسها على السطح، مولدة مجالاً داخلياً مستحثاً ($E_{induced}$) يعاكس المجال
                             الخارجي.
                         </p>
                         <button
                             onclick="triggerAIExplainer('كيف تعيد الإلكترونات ترتيب نفسها على سطح الدرع المعدني عند تعرضها لمجال كهرومغناطيسي خارجي؟')"
-                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
+                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity"
+                            data-i18n="faraday-c2-btn">
                             ✨ اشرح ميكانيكية استجابة الإلكترونات
                         </button>
                     </div>
 
                     <div
-                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-blue-500 relative group">
+                        class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-is-4 border-is-blue-500 relative group">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
-                            <span>🚫</span> الانعدام المجالي
+                            <span>🚫</span> <span data-i18n="faraday-c3-h3">الانعدام المجالي</span>
                         </h3>
-                        <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        <p class="text-slate-600 text-sm leading-relaxed mb-4" data-i18n-html="faraday-c3-p">
                             بناءً على قانون جاوس، صافي المجال داخل التجويف الأسطواني يساوي صفراً، مما يضمن "صمتاً
                             كهرومغناطيسياً" للسلك المركزي.
                         </p>
@@ -900,7 +980,8 @@
                         </div>
                         <button
                             onclick="triggerAIExplainer('اشرح رياضياً وفيزيائياً كيف يستنتج قانون جاوس أن المجال داخل موصل مجوف يساوي صفراً.')"
-                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity">
+                            class="mt-3 text-xs text-brand-600 font-bold hover:underline flex items-center gap-1 w-full justify-center opacity-70 hover:opacity-100 transition-opacity"
+                            data-i18n="faraday-c3-btn">
                             ✨ كيف يحقق قانون جاوس هذا؟
                         </button>
                     </div>
@@ -909,13 +990,14 @@
                 <!-- Interactive Simulator -->
                 <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
                     <div class="mb-6 pb-4 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-lg text-slate-800">راسم الإشارة (Oscilloscope)</h3>
+                        <h3 class="font-bold text-lg text-slate-800" data-i18n="faraday-sim-h3">راسم الإشارة (Oscilloscope)</h3>
                         <div class="flex gap-2">
                             <button id="btn-emi" onclick="toggleEMI()"
-                                class="px-3 py-1 bg-red-100 text-red-700 border border-red-300 rounded-md text-xs font-bold hover:bg-red-200 transition-colors">تشغيل
-                                مصدر التشويش (Motor)</button>
+                                class="px-3 py-1 bg-red-100 text-red-700 border border-red-300 rounded-md text-xs font-bold hover:bg-red-200 transition-colors"
+                                data-i18n="emi-on">تشغيل مصدر التشويش (Motor)</button>
                             <button id="btn-shield" onclick="toggleShield()"
                                 class="px-3 py-1 bg-slate-200 text-slate-500 border border-slate-300 rounded-md text-xs font-bold transition-colors cursor-not-allowed"
+                                data-i18n="shield-on"
                                 disabled>تفعيل درع فاراداي</button>
                         </div>
                     </div>
@@ -955,7 +1037,7 @@
 
     <footer
         class="bg-slate-900 text-slate-400 py-8 text-center text-sm border-t border-slate-800 relative z-10 flex flex-col items-center gap-4">
-        <p>تصميم تفاعلي مستوحى من التطبيقات الهندسية لقانون جاوس والتماثل الأسطواني.</p>
+        <p data-i18n="footer-p">تصميم تفاعلي مستوحى من التطبيقات الهندسية لقانون جاوس والتماثل الأسطواني.</p>
 
         <div
             class="px-5 py-2 bg-slate-800/80 rounded-full border border-brand-900/50 shadow-sm flex items-center gap-2 transform hover:scale-105 transition-transform duration-300 cursor-default">
@@ -974,14 +1056,14 @@
             <!-- Header -->
             <div
                 class="bg-gradient-to-l from-brand-600 to-brand-500 p-4 text-white flex justify-between items-center shadow-md z-10">
-                <span class="font-bold flex items-center gap-2">✨ المساعد الهندسي الذكي</span>
+                <span class="font-bold flex items-center gap-2" data-i18n="ai-hdr">✨ المساعد الهندسي الذكي</span>
                 <button onclick="toggleAIChat()" class="hover:text-brand-100 text-2xl leading-none">&times;</button>
             </div>
 
             <!-- Messages Area -->
             <div id="ai-chat-messages"
                 class="p-4 flex-grow overflow-y-auto flex flex-col gap-3 custom-scrollbar text-sm bg-slate-50 min-h-[300px]">
-                <div
+                <div data-i18n-html="ai-welcome"
                     class="bg-white border border-slate-200 p-3 rounded-2xl rounded-tr-none self-start max-w-[90%] shadow-sm msg-enter text-slate-700 leading-relaxed">
                     مرحباً! أنا مساعدك المدعوم بـ الذكاء الاصطناعي.
                     <br><br>
@@ -993,9 +1075,9 @@
             <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
                 <input type="text" id="ai-chat-input"
                     class="flex-grow border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-                    placeholder="اسأل عن أي مفهوم هندسي..." onkeypress="handleAIChatKeyPress(event)">
+                    data-i18n-ph="ai-ph" placeholder="اسأل عن أي مفهوم هندسي..." onkeypress="handleAIChatKeyPress(event)">
                 <button onclick="sendAIMessage()" id="ai-send-btn"
-                    class="bg-brand-600 text-white px-4 py-2 rounded-xl hover:bg-brand-700 transition shadow-sm font-bold flex items-center justify-center">إرسال</button>
+                    class="bg-brand-600 text-white px-4 py-2 rounded-xl hover:bg-brand-700 transition shadow-sm font-bold flex items-center justify-center" data-i18n="ai-send">إرسال</button>
             </div>
         </div>
 
@@ -1019,9 +1101,9 @@
             <!-- العنوان -->
             <div class="download-modal-title" id="download-modal-title">
                 <span>📄</span>
-                <span>تحميل الأوراق البحثية</span>
+                <span data-i18n="dl-modal-title">تحميل الأوراق البحثية</span>
             </div>
-            <p class="download-modal-subtitle">اختر الصيغة التي تناسبك لتحميل البحث العلمي</p>
+            <p class="download-modal-subtitle" data-i18n="dl-modal-sub">اختر الصيغة التي تناسبك لتحميل البحث العلمي</p>
 
             <!-- الخيار 1: تحميل البحث بالعربية -->
             <a href="التدفق الذكي تسخير قانون جاوس في أنظمة الاستشعار والتحكم (Smart Flux Harnessing Gauss's Law in Sensing %26 Control Systems).docx"
@@ -1030,8 +1112,8 @@
                id="dl-arabic">
                 <div class="dl-icon arabic">🇸🇦</div>
                 <div class="dl-info">
-                    <span class="dl-label">البحث باللغة العربية</span>
-                    <span class="dl-desc">التدفق الذكي — تسخير قانون جاوس · DOCX</span>
+                    <span class="dl-label" data-i18n="dl-lbl-ar">البحث باللغة العربية</span>
+                    <span class="dl-desc" data-i18n="dl-desc-ar">التدفق الذكي — تسخير قانون جاوس · DOCX</span>
                 </div>
                 <span class="dl-arrow">←</span>
             </a>
@@ -1043,8 +1125,8 @@
                id="dl-english">
                 <div class="dl-icon english">🇬🇧</div>
                 <div class="dl-info">
-                    <span class="dl-label">البحث باللغة الإنجليزية</span>
-                    <span class="dl-desc">Cylindrical Gaussian Surfaces · DOCX</span>
+                    <span class="dl-label" data-i18n="dl-lbl-en">البحث باللغة الإنجليزية</span>
+                    <span class="dl-desc" data-i18n="dl-desc-en">Cylindrical Gaussian Surfaces · DOCX</span>
                 </div>
                 <span class="dl-arrow">←</span>
             </a>
@@ -1056,8 +1138,8 @@
                id="dl-ppt">
                 <div class="dl-icon ppt">📊</div>
                 <div class="dl-info">
-                    <span class="dl-label">العرض التقديمي</span>
-                    <span class="dl-desc">Physics Analysis — Gaussian Surfaces · PPTX</span>
+                    <span class="dl-label" data-i18n="dl-lbl-ppt">العرض التقديمي</span>
+                    <span class="dl-desc" data-i18n="dl-desc-ppt">Physics Analysis — Gaussian Surfaces · PPTX</span>
                 </div>
                 <span class="dl-arrow">←</span>
             </a>
@@ -1091,6 +1173,234 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeDownloadModal();
         });
+
+        // ================================================
+        // 🌐 I18N SYSTEM — نظام تعدد اللغات
+        // ================================================
+        const i18nData = {
+            ar: {
+                'site-title':'الفيزياء في قلب الصناعة',
+                'site-subtitle':'التطبيقات الهندسية المتقدمة للتماثل الأسطواني وقانون جاوس',
+                'nav-intro':'المقدمة','nav-sensor':'المستشعرات السعوية',
+                'nav-esp':'المرسبات الكهروستاتيكية','nav-faraday':'درع فاراداي',
+                'dl-btn':'تحميل الأوراق البحثية','lang-lbl':'EN',
+                'intro-h2':'من المعادلات المجردة إلى الواقع الملموس',
+                'intro-p':'تكتسب النظريات الفيزيائية قيمتها الحقيقية عندما تتجاوز حيز المعادلات المجردة على الورق لتصبح حلولاً ملموسة تواجه التحديات الهندسية المعاصرة. في هذه المنصة التفاعلية، نستخدم الاستنتاجات الرياضية للتماثل الأسطواني لفك شفرة ثلاثة من أعقد التطبيقات في القطاع الصناعي الحديث.',
+                'intro-c1-h3':'قياس دقيق وآمن','intro-c1-p':'مستشعرات تعتمد على السعة الكهربائية لبيئات العمل الخطرة.',
+                'intro-c2-h3':'هواء نقي ومستدام','intro-c2-p':'مرسبات تعتمد على المجال الكهربائي لاصطياد الملوثات.',
+                'intro-c3-h3':'سلامة البيانات','intro-c3-p':'دروع أسطوانية لحماية الإشارات من التداخل الكهرومغناطيسي.',
+                'intro-hint':'✨ استعن بـ <span class="font-bold">المساعد الهندسي الذكي</span> في أسفل الشاشة لشرح المعادلات أو استكشاف المزيد من التطبيقات!',
+                'sensor-h2':'المستشعرات السعوية لقياس مستوى السوائل',
+                'sensor-sub':'منهجية القياس اللاتلامسي في الصناعات البتروكيماوية',
+                'sensor-ai':'✨ توليد دراسة حالة ذكية',
+                'sensor-c1-h3':'الإشكالية الهندسية',
+                'sensor-c1-p':'في الصناعات البتروكيماوية والدوائية، الاعتماد على "العوامات الميكانيكية" يواجه تحديات قاسية: التآكل بسبب الأحماض، خطر الشرر في بيئات متفجرة، وتعطل الأجزاء المتحركة. ظهرت الحاجة الماسة لنظام قياس "لا تلامسي" (Non-mechanical).',
+                'sensor-c2-h3':'المقاربة الفيزيائية',
+                'sensor-c2-p':'يتكون المستشعر السعوي من قضيب معدني (أسطوانة داخلية $a$) وجدار الخزان (أسطوانة خارجية $b$). يعتمد على "الاستقطاب العازل". الهواء له $k_{air} \\approx 1$، بينما السوائل الصناعية لها $k$ أعلى (مثلاً الزيت $k \\approx 2.5$).',
+                'sensor-c2-btn':'✨ اشرح لي هذه المعادلة',
+                'sensor-c3-h3':'النمذجة الرياضية',
+                'sensor-c3-p':'النظام يعامل كمكثفين على التوازي. السعة الكلية $C_{total}$ دالة خطية في ارتفاع السائل $h$:',
+                'sensor-c3-btn':'✨ اشرح لي هذه الدالة الخطية',
+                'sensor-c4-h3':'التكامل مع أنظمة التحكم (PLC)',
+                'sensor-c4-p':'دائرة المذبذب تحول التغير في السعة إلى إشارة تيار قياسية (4-20 mA) تقرأها أنظمة SCADA كنسبة مئوية دقيقة.',
+                'sensor-sim-h3':'محاكي الاستشعار الصناعي',
+                'sensor-lbl-h':'ارتفاع السائل ($h$)',
+                'sensor-disp-c':'السعة المقاسة ($C$)','sensor-disp-plc':'إشارة PLC (mA)',
+                'esp-h2':'المرسبات الكهروستاتيكية (ESP)',
+                'esp-sub':'تنقية الانبعاثات الصناعية باستخدام التفريغ الهالي (Corona Discharge)',
+                'esp-ai':'✨ تقييم بيئي بالذكاء الاصطناعي',
+                'esp-c1-h3':'الإشكالية البيئية',
+                'esp-c1-p':'محطات الطاقة ومصانع الأسمنت تنتج عوادم محملة بجسيمات سامة (PM2.5). الفلاتر النسيجية تعيق تدفق الهواء (Pressure Drop) وتحترق. الحل هو توظيف "التدفق الكهربائي" لاصطياد الجسيمات دون إعاقة الهواء.',
+                'esp-c2-h3':'ميكانيكا الكم والكورونا',
+                'esp-c2-p':'أنبوب معدني مؤرض يمر بمركزه سلك تفريغ رفيع جداً بجهد سالب عالي. نظراً لصغر نصف قطر السلك $r$، يصل المجال $E$ لمستويات تتجاوز حد "الانهيار العازل" للهواء ($3 \\times 10^6 \\text{ V/m}$).',
+                'esp-c2-btn':'✨ اشرح ظاهرة الكورونا',
+                'esp-c3-h3':'ديناميكا اصطياد الدخان',
+                'esp-c3-p':'يكتسب الدخان شحنة سالبة ويخضع لقوة كولوم نحو الجدار الموجب، وقوة إعاقة لزجة (Stokes).',
+                'esp-c3-btn':'✨ اشرح ميكانيكا اصطياد الدخان',
+                'esp-sim-h3':'تحليل المجال الكهربائي والتفريغ',
+                'esp-lbl-v':'جهد سلك التفريغ (kV)',
+                'esp-v-hint':'زيادة الجهد ترفع منحنى المجال الكهربائي. إذا تجاوز المجال حاجز الانهيار (الخط الأحمر)، تبدأ ظاهرة الكورونا التي تؤين الهواء وتصطاد الدخان.',
+                'corona-on':'حالة الكورونا: نشطة (تأين فعال)','corona-off':'حالة الكورونا: خاملة (جهد غير كافٍ)',
+                'faraday-h2':'درع فاراداي والكابلات المحورية',
+                'faraday-sub':'تطبيق قانون جاوس لضمان سلامة الإشارة (Signal Integrity) في بيئات التشويش العالي',
+                'faraday-ai':'✨ دراسة حالة طبية (MRI)',
+                'faraday-c1-h3':'أزمة التداخل (EMI)',
+                'faraday-c1-p':'المحركات الضخمة تولد مجالات كهرومغناطيسية عنيفة. إذا مرت كابلات البيانات بالقرب منها، تتعرض الإشارات الرقمية الدقيقة للتشويش والتشوه الكامل (Electromagnetic Interference).',
+                'faraday-c2-h3':'الدرع الأسطواني',
+                'faraday-c2-p':'الكابل المحوري يمتلك شبكة معدنية مضفرة. عند تعرضها لمجال خارجي ($E_{ext}$)، تعيد الإلكترونات الحرة ترتيب نفسها على السطح، مولدة مجالاً داخلياً مستحثاً ($E_{induced}$) يعاكس المجال الخارجي.',
+                'faraday-c2-btn':'✨ اشرح ميكانيكية استجابة الإلكترونات',
+                'faraday-c3-h3':'الانعدام المجالي',
+                'faraday-c3-p':'بناءً على قانون جاوس، صافي المجال داخل التجويف الأسطواني يساوي صفراً، مما يضمن "صمتاً كهرومغناطيسياً" للسلك المركزي.',
+                'faraday-c3-btn':'✨ كيف يحقق قانون جاوس هذا؟',
+                'faraday-sim-h3':'راسم الإشارة (Oscilloscope)',
+                'emi-on':'تشغيل مصدر التشويش (Motor)','emi-off':'إيقاف مصدر التشويش',
+                'shield-on':'تفعيل درع فاراداي','shield-off':'إزالة الدرع',
+                'footer-p':'تصميم تفاعلي مستوحى من التطبيقات الهندسية لقانون جاوس والتماثل الأسطواني.',
+                'ai-hdr':'✨ المساعد الهندسي الذكي',
+                'ai-welcome':'مرحباً! أنا مساعدك المدعوم بـ الذكاء الاصطناعي.<br><br>يمكنك سؤالي عن أي مصطلح، معادلة، أو تطبيق هندسي ورد في هذه المنصة. كيف يمكنني إثراء معرفتك اليوم؟',
+                'ai-ph':'اسأل عن أي مفهوم هندسي...','ai-send':'إرسال',
+                'ai-thinking':'✨ جاري التفكير وجمع المعلومات...',
+                'dl-modal-title':'تحميل الأوراق البحثية',
+                'dl-modal-sub':'اختر الصيغة التي تناسبك لتحميل البحث العلمي',
+                'dl-lbl-ar':'البحث باللغة العربية','dl-desc-ar':'التدفق الذكي — تسخير قانون جاوس · DOCX',
+                'dl-lbl-en':'البحث باللغة الإنجليزية','dl-desc-en':'Cylindrical Gaussian Surfaces · DOCX',
+                'dl-lbl-ppt':'العرض التقديمي','dl-desc-ppt':'Physics Analysis — Gaussian Surfaces · PPTX',
+                'ch-s-ds':'السعة الكهربائية الكلية (pF)','ch-s-cur':'القراءة الحالية',
+                'ch-s-y':'السعة (pF)','ch-s-x':'مستوى السائل (%)',
+                'ch-e-ds1':'شدة المجال E (x10⁶ V/m)','ch-e-ds2':'حد الانهيار العازل (Breakdown)',
+                'ch-e-y':'المجال الكهربائي E','ch-e-x':'المسافة من السلك r (mm)',
+                'ch-f-ds':'الإشارة الرقمية (Data Signal)','ch-f-y':'الجهد (V)',
+            },
+            en: {
+                'site-title':'Physics at the Heart of Industry',
+                'site-subtitle':'Advanced Engineering Applications of Cylindrical Symmetry & Gauss\'s Law',
+                'nav-intro':'Introduction','nav-sensor':'Capacitive Sensors',
+                'nav-esp':'Electrostatic Precipitators','nav-faraday':'Faraday Shield',
+                'dl-btn':'Download Research Papers','lang-lbl':'AR',
+                'intro-h2':'From Abstract Equations to Tangible Reality',
+                'intro-p':'Physical theories gain their true value when they transcend abstract equations on paper to become tangible solutions to contemporary engineering challenges. In this interactive platform, we use the mathematical derivations of cylindrical symmetry to decode three of the most complex applications in modern industry.',
+                'intro-c1-h3':'Precise & Safe Measurement','intro-c1-p':'Sensors based on electrical capacitance for hazardous industrial environments.',
+                'intro-c2-h3':'Clean & Sustainable Air','intro-c2-p':'Precipitators using electric fields to capture industrial pollutants.',
+                'intro-c3-h3':'Data Integrity','intro-c3-p':'Cylindrical shields protecting signals from electromagnetic interference.',
+                'intro-hint':'✨ Use the <span class="font-bold">Smart Engineering Assistant</span> at the bottom of the screen to explain equations or explore more applications!',
+                'sensor-h2':'Capacitive Sensors for Liquid Level Measurement',
+                'sensor-sub':'Non-contact measurement methodology in petrochemical industries',
+                'sensor-ai':'✨ Generate Smart Case Study',
+                'sensor-c1-h3':'Engineering Problem',
+                'sensor-c1-p':'In petrochemical and pharmaceutical industries, relying on "mechanical floats" faces harsh challenges: acid corrosion, spark hazards in explosive environments, and moving parts failure. The critical need arose for a "non-mechanical" measurement system.',
+                'sensor-c2-h3':'Physical Approach',
+                'sensor-c2-p':'The capacitive sensor consists of a metal rod (inner cylinder $a$) and the tank wall (outer cylinder $b$). It relies on "dielectric polarization". Air has $k_{air} \\approx 1$, while industrial liquids have higher $k$ (e.g., oil $k \\approx 2.5$).',
+                'sensor-c2-btn':'✨ Explain this equation',
+                'sensor-c3-h3':'Mathematical Modeling',
+                'sensor-c3-p':'The system is treated as two parallel capacitors. Total capacitance $C_{total}$ is a linear function of liquid height $h$:',
+                'sensor-c3-btn':'✨ Explain this linear function',
+                'sensor-c4-h3':'Integration with Control Systems (PLC)',
+                'sensor-c4-p':'The oscillator circuit converts capacitance change into a standard current signal (4-20 mA) read by SCADA systems as an accurate percentage.',
+                'sensor-sim-h3':'Industrial Sensing Simulator',
+                'sensor-lbl-h':'Fluid Height ($h$)',
+                'sensor-disp-c':'Measured Capacitance ($C$)','sensor-disp-plc':'PLC Signal (mA)',
+                'esp-h2':'Electrostatic Precipitators (ESP)',
+                'esp-sub':'Purifying industrial emissions using Corona Discharge',
+                'esp-ai':'✨ AI Environmental Assessment',
+                'esp-c1-h3':'Environmental Problem',
+                'esp-c1-p':'Power plants and cement factories produce exhaust laden with toxic particles (PM2.5). Fabric filters impede airflow (Pressure Drop) and burn out. The solution is to use "electric flux" to capture particles without impeding airflow.',
+                'esp-c2-h3':'Corona Discharge Mechanics',
+                'esp-c2-p':'A grounded metal tube with a very thin discharge wire at its center under high negative voltage. Due to the small wire radius $r$, field $E$ exceeds the "dielectric breakdown" threshold of air ($3 \\times 10^6 \\text{ V/m}$).',
+                'esp-c2-btn':'✨ Explain the Corona phenomenon',
+                'esp-c3-h3':'Smoke Capture Dynamics',
+                'esp-c3-p':'Smoke particles acquire a negative charge, subject to Coulomb force toward the positive wall, and a viscous drag force (Stokes).',
+                'esp-c3-btn':'✨ Explain smoke capture mechanics',
+                'esp-sim-h3':'Electric Field & Discharge Analysis',
+                'esp-lbl-v':'Discharge Wire Voltage (kV)',
+                'esp-v-hint':'Increasing voltage raises the electric field curve. If the field exceeds the breakdown threshold (red line), the Corona phenomenon begins, ionizing air and capturing smoke.',
+                'corona-on':'Corona Status: Active (Effective Ionization)','corona-off':'Corona Status: Inactive (Insufficient Voltage)',
+                'faraday-h2':'Faraday Shield & Coaxial Cables',
+                'faraday-sub':'Applying Gauss\'s Law to ensure Signal Integrity in high-interference environments',
+                'faraday-ai':'✨ Medical Case Study (MRI)',
+                'faraday-c1-h3':'EMI Crisis',
+                'faraday-c1-p':'Large motors generate violent electromagnetic fields. If data cables pass nearby, precision digital signals are exposed to complete distortion (Electromagnetic Interference).',
+                'faraday-c2-h3':'Cylindrical Shield',
+                'faraday-c2-p':'The coaxial cable has a braided metallic mesh. When exposed to an external field ($E_{ext}$), free electrons rearrange on the surface, generating an induced internal field ($E_{induced}$) opposing the external field.',
+                'faraday-c2-btn':'✨ Explain the electron response mechanism',
+                'faraday-c3-h3':'Field Nullification',
+                'faraday-c3-p':'Based on Gauss\'s Law, the net field inside the cylindrical cavity equals zero, ensuring "electromagnetic silence" for the central wire.',
+                'faraday-c3-btn':'✨ How does Gauss\'s Law achieve this?',
+                'faraday-sim-h3':'Signal Tracer (Oscilloscope)',
+                'emi-on':'Enable Noise Source (Motor)','emi-off':'Disable Noise Source',
+                'shield-on':'Activate Faraday Shield','shield-off':'Remove Shield',
+                'footer-p':'Interactive design inspired by engineering applications of Gauss\'s Law and cylindrical symmetry.',
+                'ai-hdr':'✨ Smart Engineering Assistant',
+                'ai-welcome':'Hello! I am your AI-powered assistant.<br><br>You can ask me about any term, equation, or engineering application on this platform. How can I enrich your knowledge today?',
+                'ai-ph':'Ask about any engineering concept...','ai-send':'Send',
+                'ai-thinking':'✨ Thinking and gathering information...',
+                'dl-modal-title':'Download Research Papers',
+                'dl-modal-sub':'Choose the format to download the scientific research',
+                'dl-lbl-ar':'Arabic Research Paper','dl-desc-ar':'Smart Flux — Harnessing Gauss\'s Law · DOCX',
+                'dl-lbl-en':'English Research Paper','dl-desc-en':'Cylindrical Gaussian Surfaces · DOCX',
+                'dl-lbl-ppt':'Presentation Slides','dl-desc-ppt':'Physics Analysis — Gaussian Surfaces · PPTX',
+                'ch-s-ds':'Total Capacitance (pF)','ch-s-cur':'Current Reading',
+                'ch-s-y':'Capacitance (pF)','ch-s-x':'Liquid Level (%)',
+                'ch-e-ds1':'Field Intensity E (x10⁶ V/m)','ch-e-ds2':'Dielectric Breakdown Threshold',
+                'ch-e-y':'Electric Field E','ch-e-x':'Distance from wire r (mm)',
+                'ch-f-ds':'Digital Signal (Data Signal)','ch-f-y':'Voltage (V)',
+            }
+        };
+
+        let currentLang = localStorage.getItem('site-lang') || 'ar';
+
+        function applyLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('site-lang', lang);
+            const html = document.getElementById('html-root');
+            html.lang = lang;
+            html.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            const t = i18nData[lang];
+            // Plain text
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                if (t[el.dataset.i18n] !== undefined) el.textContent = t[el.dataset.i18n];
+            });
+            // HTML content (inline markup / math prose)
+            document.querySelectorAll('[data-i18n-html]').forEach(el => {
+                if (t[el.dataset.i18nHtml] !== undefined) el.innerHTML = t[el.dataset.i18nHtml];
+            });
+            // Global MathJax trigger
+            if (window.MathJax) {
+                MathJax.typesetPromise().catch((err) => console.log(err.message));
+            }
+            // Placeholders
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                if (t[el.dataset.i18nPh] !== undefined) el.placeholder = t[el.dataset.i18nPh];
+            });
+            // Toggle pill label
+            const pill = document.getElementById('lang-pill');
+            if (pill) pill.textContent = lang === 'ar' ? 'EN' : 'AR';
+            // Charts
+            _updateCharts(t);
+        }
+
+        function toggleLang() {
+            const loader = document.getElementById('i18n-loader');
+            const targetLang = currentLang === 'ar' ? 'en' : 'ar';
+            const loaderText = document.getElementById('loader-text');
+            
+            // Set loader text based on target
+            loaderText.textContent = targetLang === 'ar' ? 'جاري تحويل اللغة...' : 'Switching Language...';
+            
+            // 1. Show loader
+            loader.classList.add('active');
+
+            // 2. Short delay to allow blur animation to start
+            setTimeout(() => {
+                applyLang(targetLang);
+                
+                // 3. Hide loader after DOM updates and MathJax starts
+                setTimeout(() => {
+                    loader.classList.remove('active');
+                }, 400); 
+            }, 300);
+        }
+
+        function _updateCharts(t) {
+            if (typeof sensorChartInstance !== 'undefined' && sensorChartInstance) {
+                sensorChartInstance.data.datasets[0].label = t['ch-s-ds'];
+                if (sensorChartInstance.data.datasets[1]) sensorChartInstance.data.datasets[1].label = t['ch-s-cur'];
+                sensorChartInstance.options.scales.y.title.text = t['ch-s-y'];
+                sensorChartInstance.options.scales.x.title.text = t['ch-s-x'];
+                sensorChartInstance.update();
+            }
+            if (typeof espChartInstance !== 'undefined' && espChartInstance) {
+                espChartInstance.data.datasets[0].label = t['ch-e-ds1'];
+                espChartInstance.data.datasets[1].label = t['ch-e-ds2'];
+                espChartInstance.options.scales.y.title.text = t['ch-e-y'];
+                espChartInstance.options.scales.x.title.text = t['ch-e-x'];
+                espChartInstance.update();
+            }
+            if (typeof faradayChartInstance !== 'undefined' && faradayChartInstance) {
+                faradayChartInstance.data.datasets[0].label = t['ch-f-ds'];
+                faradayChartInstance.options.scales.y.title.text = t['ch-f-y'];
+                faradayChartInstance.update();
+            }
+        }
 
         // --- 0. OpenRouter AI Integration ---
         
@@ -1464,12 +1774,13 @@
             espChartInstance.update();
 
             // Check if max E is above threshold
+            const t = i18nData[currentLang];
             const statusDiv = document.getElementById('corona-status');
             if (newData[0] >= breakdownThreshold) {
-                statusDiv.innerText = "حالة الكورونا: نشطة (تأين فعال)";
+                statusDiv.innerText = t['corona-on'];
                 statusDiv.className = "absolute top-4 right-4 glass-panel px-4 py-2 rounded-lg text-sm font-bold text-emerald-600 shadow-sm transition-colors duration-300 border-emerald-200";
             } else {
-                statusDiv.innerText = "حالة الكورونا: خاملة (جهد غير كافٍ)";
+                statusDiv.innerText = t['corona-off'];
                 statusDiv.className = "absolute top-4 right-4 glass-panel px-4 py-2 rounded-lg text-sm font-bold text-red-500 shadow-sm transition-colors duration-300 border-red-200";
             }
         }
@@ -1557,12 +1868,13 @@
 
         function toggleEMI() {
             isEMIActive = !isEMIActive;
+            const t = i18nData[currentLang];
             const btn = document.getElementById('btn-emi');
             const shieldBtn = document.getElementById('btn-shield');
             const noiseVisual = document.getElementById('noise-field');
 
             if (isEMIActive) {
-                btn.innerText = 'إيقاف مصدر التشويش';
+                btn.innerText = t['emi-off'];
                 btn.classList.replace('bg-red-100', 'bg-red-600');
                 btn.classList.replace('text-red-700', 'text-white');
                 noiseVisual.classList.remove('opacity-0');
@@ -1573,7 +1885,7 @@
                 shieldBtn.classList.replace('border-slate-300', 'border-amber-300');
                 shieldBtn.classList.remove('cursor-not-allowed');
             } else {
-                btn.innerText = 'تشغيل مصدر التشويش (Motor)';
+                btn.innerText = t['emi-on'];
                 btn.classList.replace('bg-red-600', 'bg-red-100');
                 btn.classList.replace('text-white', 'text-red-700');
                 noiseVisual.classList.add('opacity-0');
@@ -1590,18 +1902,19 @@
         function toggleShield() {
             if (!isEMIActive) return;
 
+            const t = i18nData[currentLang];
             isShieldActive = !isShieldActive;
             const btn = document.getElementById('btn-shield');
             const visual = document.getElementById('shield-visual');
 
             if (isShieldActive) {
-                btn.innerText = 'إزالة الدرع';
+                btn.innerText = t['shield-off'];
                 btn.classList.replace('bg-amber-100', 'bg-amber-500');
                 btn.classList.replace('text-amber-700', 'text-white');
                 visual.classList.replace('opacity-0', 'opacity-100');
                 faradayChartInstance.data.datasets[0].borderColor = '#34d399';
             } else {
-                btn.innerText = 'تفعيل درع فاراداي';
+                btn.innerText = t['shield-on'];
                 btn.classList.replace('bg-amber-500', 'bg-amber-100');
                 btn.classList.replace('text-white', 'text-amber-700');
                 visual.classList.replace('opacity-100', 'opacity-0');
@@ -1619,6 +1932,9 @@
             initFaradayChart();
 
             switchTab('intro');
+
+            // 🌐 Apply saved language preference
+            applyLang(currentLang);
         };
 
     </script>
