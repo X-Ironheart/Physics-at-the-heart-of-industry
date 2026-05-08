@@ -65,90 +65,264 @@
 
     <!-- Strict Chart Container Styling as Requested -->
     <style>
+        /* =====================================================
+           MOBILE-FIRST RESPONSIVE SYSTEM
+           قاعدة: نكتب للموبايل أولاً، ثم نُوسّع للشاشات الكبيرة
+           ===================================================== */
+
+        /* --- Global box-sizing لمنع طفح المحتوى أفقياً --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        /* نمنع أي overflow أفقي على مستوى الصفحة كاملة */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        /* --- Chart Container ---
+           نستخدم clamp() لارتفاع مرن بدون media queries زائدة.
+           clamp(min, preferred, max): يبدأ من 220px على الموبايل
+           ويصل إلى 400px على الشاشات الكبيرة بشكل سلس.
+        */
         .chart-container {
             position: relative;
             width: 100%;
             max-width: 100%;
-            /* Adapts to parent column */
             margin-left: auto;
             margin-right: auto;
-            height: 300px;
-            /* Base height */
-            max-height: 400px;
+            height: clamp(220px, 40vw, 400px);
         }
 
-        @media (min-width: 768px) {
-            .chart-container {
-                height: 350px;
-            }
-        }
+        /* --- Custom Scrollbar --- */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        @media (min-width: 1024px) {
-            .chart-container {
-                height: 400px;
-            }
-        }
-
-        /* Custom scrollbar for text areas */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* Glassmorphism utility */
+        /* --- Glassmorphism --- */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .hide {
-            display: none !important;
+        .hide { display: none !important; }
+
+        /* =====================================================
+           🔧 FIX 8: إلغاء scrollbar من حاويات المعادلات
+           المبدأ: نُخفي شريط التمرير بصرياً (scrollbar-width: none)
+           لكن نُبقي وظيفة الـ scroll للمس والكيبورد كاملة.
+           لماذا لا نستخدم overflow:hidden؟ لأن المعادلة الطويلة
+           ستُقطع بدون أي طريقة للوصول إليها.
+           نستخدم ثلاثة أساليب لتغطية كل المتصفحات:
+             1. scrollbar-width: none        → Firefox
+             2. -ms-overflow-style: none     → IE/Edge القديم
+             3. ::-webkit-scrollbar { display: none } → Chrome/Safari
+           ===================================================== */
+
+        /* حاويات المعادلات الرياضية - bg-slate-50 مع overflow-x */
+        .eq-box {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;          /* Firefox */
+            -ms-overflow-style: none;       /* IE 11 / Edge Legacy */
+        }
+        .eq-box::-webkit-scrollbar {
+            display: none;                  /* Chrome / Safari / Opera */
         }
 
-        /* AI Chat Markdown styling */
-        .ai-message p {
-            margin-bottom: 0.5em;
+        /* MathJax: نسمح له بالتقليص أولاً قبل أن نلجأ للـ scroll */
+        mjx-container {
+            overflow-x: auto;
+            max-width: 100%;
+            display: block !important;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        mjx-container::-webkit-scrollbar { display: none; }
+
+        /* حاويات bg-slate-50 الفرعية داخل البطاقات */
+        .bg-slate-50.overflow-x-auto,
+        .rounded-lg.overflow-x-auto {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .bg-slate-50.overflow-x-auto::-webkit-scrollbar,
+        .rounded-lg.overflow-x-auto::-webkit-scrollbar {
+            display: none;
         }
 
-        .ai-message strong {
-            color: #0d9488;
-        }
+        /* --- AI Chat Markdown --- */
+        .ai-message p { margin-bottom: 0.5em; }
+        .ai-message strong { color: #0d9488; }
+        .ai-message ul { list-style-type: disc; margin-right: 1.5em; margin-bottom: 0.5em; }
 
-        .ai-message ul {
-            list-style-type: disc;
-            margin-right: 1.5em;
-            margin-bottom: 0.5em;
-        }
-
-        /* Chat entry animation */
+        /* --- Entry Animation --- */
         @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .msg-enter { animation: slideInUp 0.3s ease-out forwards; }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+        /* =====================================================
+           🔧 FIX 1: NAVIGATION BAR — شريط التنقل
+           المشكلة: flex row مع نصوص عربية طويلة → طفح أفقي
+           الحل: تحويله إلى grid 2×2 على الموبايل
+           ===================================================== */
+        .nav-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.25rem;
+            width: 100%;
+            background: #1e293b; /* slate-800 */
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+
+        /* على الشاشات المتوسطة فأكبر: نعود إلى صف واحد أفقي */
+        @media (min-width: 640px) {
+            .nav-tabs {
+                display: flex;
+                flex-direction: row;
+                width: auto;
             }
         }
 
-        .msg-enter {
-            animation: slideInUp 0.3s ease-out forwards;
+        .tab-btn {
+            /* clamp للخط: لا يصغر عن 11px ولا يكبر عن 14px */
+            font-size: clamp(0.6875rem, 2.2vw, 0.875rem);
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+            white-space: nowrap;
+            color: #94a3b8; /* slate-300 */
+        }
+
+        .tab-btn:hover { color: #fff; background: #334155; }
+
+        .tab-btn.active {
+            background: #0d9488 !important; /* brand-600 */
+            color: #fff !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* =====================================================
+           🔧 FIX 2: SECTION HEADER — رأس القسم مع زر AI
+           المشكلة: flex justify-between → الزر يطفح
+           الحل: عمود على الموبايل، صف على التابلت+
+           ===================================================== */
+        .section-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .section-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-end;
+            }
+        }
+
+        /* زر AI الذكي: يظهر دائماً (لم نعد نخفيه على الموبايل) */
+        .ai-trigger-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #ccfbf1; /* brand-100 */
+            color: #0f766e;      /* brand-700 */
+            padding: 0.4rem 0.85rem;
+            border-radius: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            transition: background 0.2s;
+            align-self: flex-start; /* لا يمتد عرضياً بالكامل */
+        }
+
+        .ai-trigger-btn:hover { background: #99f6e4; }
+
+        /* =====================================================
+           🔧 FIX 3: SPLIT LAYOUT COLUMNS
+           المشكلة: h-[80vh] overflow-y-auto يُسبب scroll داخلي
+           مربك جداً على الموبايل بدلاً من الـ natural page scroll
+           الحل: نزيل القيد على الموبايل ونعيده فقط على lg+
+           ===================================================== */
+        .theory-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            /* على الموبايل: لا overflow داخلي، يتدفق بشكل طبيعي */
+            height: auto;
+            overflow: visible;
+        }
+
+        /* نعيد الـ scroll الداخلي فقط على الشاشات الكبيرة */
+        @media (min-width: 1024px) {
+            .theory-col {
+                height: 80vh;
+                overflow-y: auto;
+                padding-right: 0.5rem;
+            }
+        }
+
+        /* =====================================================
+           🔧 FIX 4: AI CHAT WIDGET
+           المشكلة: w-[350px] ثابتة تخرج عن حدود الشاشة الصغيرة
+           الحل: min() لنأخذ الأصغر من القيمتين
+           نستخدم min() وليس width ثابتة: هذا يضمن أن النافذة
+           لن تتجاوز عرض الشاشة أبداً
+           ===================================================== */
+        #ai-chat-window {
+            /* min(350px, 100vw - 2rem) → على الموبايل يصبح عرض الشاشة - مسافة */
+            width: min(350px, calc(100vw - 2rem));
+        }
+
+        #ai-chat-widget {
+            /* تثبيت أفقي: على الموبايل نُبعد من اليمين واليسار بشكل آمن */
+            right: clamp(0.5rem, 3vw, 1.5rem);
+            bottom: 1.5rem;
+        }
+
+        /* =====================================================
+           🔧 FIX 5: IMAGES & MEDIA — منع طفح الصور
+           ===================================================== */
+        img, canvas, svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* =====================================================
+           🔧 FIX 6: MATH EQUATIONS — منع طفح المعادلات
+           ===================================================== */
+        .overflow-x-auto {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* MathJax containers */
+        mjx-container {
+            overflow-x: auto;
+            max-width: 100%;
+            display: block !important;
+        }
+
+        /* =====================================================
+           🔧 FIX 7: CORONA STATUS OVERLAY
+           المشكلة: absolute top-4 right-4 قد يطفح على الموبايل
+           الحل: نجعله static على الشاشات الصغيرة
+           ===================================================== */
+        @media (max-width: 480px) {
+            #corona-status {
+                position: static !important;
+                margin-bottom: 0.75rem;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -157,29 +331,26 @@
 
     <!-- Header -->
     <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex flex-col gap-3">
                 <div>
-                    <h1
-                        class="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-l from-brand-100 to-brand-500">
+                    <!-- clamp(): الحجم يتكيف تلقائياً بين 1.4rem و 1.875rem -->
+                    <h1 class="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-l from-brand-100 to-brand-500"
+                        style="font-size: clamp(1.25rem, 5vw, 1.875rem);">
                         الفيزياء في قلب الصناعة
                     </h1>
-                    <p class="mt-1 text-slate-300 text-sm md:text-base">التطبيقات الهندسية المتقدمة للتماثل الأسطواني
-                        وقانون جاوس</p>
+                    <p class="mt-1 text-slate-300" style="font-size: clamp(0.75rem, 2.5vw, 0.9375rem);">
+                        التطبيقات الهندسية المتقدمة للتماثل الأسطواني وقانون جاوس
+                    </p>
                 </div>
-                <!-- Navigation -->
-                <nav class="flex space-x-2 space-x-reverse bg-slate-800 p-1 rounded-lg">
-                    <button onclick="switchTab('intro')" id="btn-intro"
-                        class="tab-btn px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 bg-brand-600 text-white shadow">المقدمة</button>
-                    <button onclick="switchTab('sensor')" id="btn-sensor"
-                        class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-200">المستشعرات
-                        السعوية</button>
-                    <button onclick="switchTab('esp')" id="btn-esp"
-                        class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-200">المرسبات
-                        الكهروستاتيكية</button>
-                    <button onclick="switchTab('faraday')" id="btn-faraday"
-                        class="tab-btn px-4 py-2 rounded-md text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700 transition-all duration-200">درع
-                        فاراداي</button>
+                <!-- Navigation: nav-tabs class تُطبق grid 2x2 على الموبايل -->
+                <nav>
+                    <div class="nav-tabs">
+                        <button onclick="switchTab('intro')" id="btn-intro" class="tab-btn active">المقدمة</button>
+                        <button onclick="switchTab('sensor')" id="btn-sensor" class="tab-btn">المستشعرات السعوية</button>
+                        <button onclick="switchTab('esp')" id="btn-esp" class="tab-btn">المرسبات الكهروستاتيكية</button>
+                        <button onclick="switchTab('faraday')" id="btn-faraday" class="tab-btn">درع فاراداي</button>
+                    </div>
                 </nav>
             </div>
         </div>
@@ -231,21 +402,21 @@
 
         <!-- Sensor Section -->
         <section id="sec-sensor" class="tab-content hide">
-            <div class="mb-6 flex justify-between items-end">
+            <div class="section-header">
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900">المستشعرات السعوية لقياس مستوى السوائل</h2>
                     <p class="text-slate-500 mt-2">منهجية القياس اللاتلامسي في الصناعات البتروكيماوية</p>
                 </div>
                 <button
                     onclick="triggerAIExplainer('ما هي أهمية استخدام المستشعرات السعوية في خزانات الوقود بدلاً من العوامات التقليدية؟ أذكر دراسة حالة قصيرة.')"
-                    class="bg-brand-100 text-brand-700 hover:bg-brand-200 px-4 py-2 rounded-lg text-sm font-bold transition-colors hidden md:flex items-center gap-2">
+                    class="ai-trigger-btn">
                     ✨ توليد دراسة حالة ذكية
                 </button>
             </div>
 
             <div class="grid lg:grid-cols-12 gap-8">
                 <!-- Text / Theory (Right Column in RTL) -->
-                <div class="lg:col-span-5 flex flex-col gap-6 h-[80vh] overflow-y-auto custom-scrollbar pr-2">
+                <div class="lg:col-span-5 theory-col custom-scrollbar">
 
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
@@ -268,7 +439,7 @@
                             يعتمد على "الاستقطاب العازل". الهواء له $k_{air} \approx 1$، بينما السوائل الصناعية لها $k$
                             أعلى (مثلاً الزيت $k \approx 2.5$).
                         </p>
-                        <div class="bg-slate-50 p-4 rounded-lg overflow-x-auto text-sm text-center">
+                        <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center">
                             $$C = \frac{2 \pi \epsilon_0 k L}{\ln(b/a)}$$
                         </div>
                         <button
@@ -286,7 +457,7 @@
                         <p class="text-slate-600 text-sm leading-relaxed mb-4">
                             النظام يعامل كمكثفين على التوازي. السعة الكلية $C_{total}$ دالة خطية في ارتفاع السائل $h$:
                         </p>
-                        <div class="bg-slate-50 p-4 rounded-lg overflow-x-auto text-sm text-center">
+                        <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center">
                             $$C_{total}(h) = \frac{2 \pi \epsilon_0}{\ln(b/a)} \left[ k_{air} L + h (k_{liquid} -
                             k_{air}) \right]$$
                         </div>
@@ -375,22 +546,21 @@
 
         <!-- ESP Section -->
         <section id="sec-esp" class="tab-content hide">
-            <div class="mb-6 flex justify-between items-end">
+            <div class="section-header">
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900">المرسبات الكهروستاتيكية (ESP)</h2>
-                    <p class="text-slate-500 mt-2">تنقية الانبعاثات الصناعية باستخدام التفريغ الهالي (Corona Discharge)
-                    </p>
+                    <p class="text-slate-500 mt-2">تنقية الانبعاثات الصناعية باستخدام التفريغ الهالي (Corona Discharge)</p>
                 </div>
                 <button
                     onclick="triggerAIExplainer('ما هو التأثير البيئي والاقتصادي لاستخدام المرسبات الكهروستاتيكية في محطات توليد الطاقة؟ أعطني مثالاً بالأرقام.')"
-                    class="bg-brand-100 text-brand-700 hover:bg-brand-200 px-4 py-2 rounded-lg text-sm font-bold transition-colors hidden md:flex items-center gap-2">
+                    class="ai-trigger-btn">
                     ✨ تقييم بيئي بالذكاء الاصطناعي
                 </button>
             </div>
 
             <div class="grid lg:grid-cols-12 gap-8">
                 <!-- Text / Theory -->
-                <div class="lg:col-span-5 flex flex-col gap-6 h-[80vh] overflow-y-auto custom-scrollbar pr-2">
+                <div class="lg:col-span-5 theory-col custom-scrollbar">
 
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
@@ -413,7 +583,7 @@
                             $r$، يصل المجال $E$ لمستويات تتجاوز حد "الانهيار العازل" للهواء ($3 \times 10^6 \text{
                             V/m}$).
                         </p>
-                        <div class="bg-slate-50 p-4 rounded-lg overflow-x-auto text-sm text-center">
+                        <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center">
                             $$E = \frac{\lambda}{2 \pi \epsilon_0 r}$$
                         </div>
                         <button
@@ -431,7 +601,7 @@
                         <p class="text-slate-600 text-sm leading-relaxed mb-4">
                             يكتسب الدخان شحنة سالبة ويخضع لقوة كولوم نحو الجدار الموجب، وقوة إعاقة لزجة (Stokes).
                         </p>
-                        <div class="bg-slate-50 p-4 rounded-lg overflow-x-auto text-sm text-center flex flex-col gap-2">
+                        <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center flex flex-col gap-2">
                             <div>قوة كولوم: $$F_e = q \cdot \left( \frac{\lambda}{2 \pi \epsilon_0 r} \right)$$</div>
                             <div>قوة ستوكس: $$F_d = 6 \pi \eta a v_d$$</div>
                         </div>
@@ -479,22 +649,21 @@
 
         <!-- Faraday Section -->
         <section id="sec-faraday" class="tab-content hide">
-            <div class="mb-6 flex justify-between items-end">
+            <div class="section-header">
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900">درع فاراداي والكابلات المحورية</h2>
-                    <p class="text-slate-500 mt-2">تطبيق قانون جاوس لضمان سلامة الإشارة (Signal Integrity) في بيئات
-                        التشويش العالي</p>
+                    <p class="text-slate-500 mt-2">تطبيق قانون جاوس لضمان سلامة الإشارة (Signal Integrity) في بيئات التشويش العالي</p>
                 </div>
                 <button
                     onclick="triggerAIExplainer('أعطني مثالاً لتطبيق درع فاراداي في الأجهزة الطبية مثل غرف الرنين المغناطيسي (MRI)، ولماذا هو حتمي للعمل؟')"
-                    class="bg-brand-100 text-brand-700 hover:bg-brand-200 px-4 py-2 rounded-lg text-sm font-bold transition-colors hidden md:flex items-center gap-2">
+                    class="ai-trigger-btn">
                     ✨ دراسة حالة طبية (MRI)
                 </button>
             </div>
 
             <div class="grid lg:grid-cols-12 gap-8">
                 <!-- Text / Theory -->
-                <div class="lg:col-span-5 flex flex-col gap-6 h-[80vh] overflow-y-auto custom-scrollbar pr-2">
+                <div class="lg:col-span-5 theory-col custom-scrollbar">
 
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
                         <h3 class="font-bold text-lg mb-2 text-slate-800 flex items-center gap-2">
@@ -532,7 +701,7 @@
                             بناءً على قانون جاوس، صافي المجال داخل التجويف الأسطواني يساوي صفراً، مما يضمن "صمتاً
                             كهرومغناطيسياً" للسلك المركزي.
                         </p>
-                        <div class="bg-slate-50 p-4 rounded-lg overflow-x-auto text-sm text-center font-bold text-lg">
+                        <div class="bg-slate-50 p-4 rounded-lg eq-box text-sm text-center font-bold text-lg">
                             $$E_{inside} = E_{ext} + E_{induced} = 0$$
                         </div>
                         <button
@@ -602,11 +771,12 @@
     </footer>
 
     <!-- AI Floating Chat Widget -->
-    <div id="ai-chat-widget" class="fixed bottom-6 right-4 z-[100] flex flex-col items-start pointer-events-none">
+    <div id="ai-chat-widget" class="fixed z-[100] flex flex-col items-start pointer-events-none" style="bottom:1.5rem; right: clamp(0.5rem, 3vw, 1.5rem);">
 
         <!-- Chat Window (Hidden by default) -->
+        <!-- w-[350px] → استبدلناها بـ CSS class #ai-chat-window التي تستخدم min() -->
         <div id="ai-chat-window"
-            class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-[350px] mb-4 flex flex-col overflow-hidden transition-all duration-300 transform scale-0 origin-bottom-right pointer-events-auto max-h-[80vh]">
+            class="bg-white rounded-2xl shadow-2xl border border-slate-200 mb-4 flex flex-col overflow-hidden transition-all duration-300 transform scale-0 origin-bottom-right pointer-events-auto max-h-[80vh]">
             <!-- Header -->
             <div
                 class="bg-gradient-to-l from-brand-600 to-brand-500 p-4 text-white flex justify-between items-center shadow-md z-10">
@@ -837,14 +1007,12 @@
             // Show selected content
             document.getElementById('sec-' + tabId).classList.remove('hide');
 
-            // Update button styles
+            // Update button styles — نستخدم class 'active' بدلاً من Tailwind المتعددة
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-brand-600', 'text-white', 'shadow');
-                btn.classList.add('text-slate-300');
+                btn.classList.remove('active');
             });
             const activeBtn = document.getElementById('btn-' + tabId);
-            activeBtn.classList.remove('text-slate-300');
-            activeBtn.classList.add('bg-brand-600', 'text-white', 'shadow');
+            activeBtn.classList.add('active');
 
             // Force MathJax to re-render if needed
             if (window.MathJax) {
