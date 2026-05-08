@@ -167,6 +167,192 @@
         .msg-enter { animation: slideInUp 0.3s ease-out forwards; }
 
         /* =====================================================
+           📥 DOWNLOAD MODAL SYSTEM
+           نافذة تحميل الأوراق البحثية العائمة
+           ===================================================== */
+        #download-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #download-modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+        #download-modal {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #134e4a 100%);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            width: min(480px, calc(100vw - 2rem));
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(20,184,166,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+            transform: translateY(30px) scale(0.95);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        #download-modal::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(20,184,166,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        #download-modal-overlay.open #download-modal {
+            transform: translateY(0) scale(1);
+        }
+        .download-modal-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 0.35rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .download-modal-subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 1.75rem;
+        }
+        .download-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-bottom: 0.75rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .download-option::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.4s ease;
+        }
+        .download-option:hover::after {
+            transform: translateX(100%);
+        }
+        .download-option:hover {
+            transform: translateX(-4px);
+            border-color: rgba(20,184,166,0.5);
+            background: rgba(20,184,166,0.1);
+            box-shadow: 0 4px 20px rgba(20,184,166,0.15);
+        }
+        .download-option:last-child { margin-bottom: 0; }
+        .dl-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .dl-icon.arabic  { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+        .dl-icon.english { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+        .dl-icon.ppt     { background: linear-gradient(135deg, #b45309, #f59e0b); }
+        .dl-info { flex: 1; text-align: right; }
+        .dl-label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #f1f5f9;
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+        .dl-desc {
+            font-size: 0.72rem;
+            color: #64748b;
+        }
+        .dl-arrow {
+            color: #475569;
+            font-size: 1.1rem;
+            transition: transform 0.25s, color 0.25s;
+        }
+        .download-option:hover .dl-arrow {
+            color: #14b8a6;
+            transform: translateX(-4px);
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1;
+        }
+        .modal-close-btn:hover {
+            background: rgba(239,68,68,0.2);
+            border-color: rgba(239,68,68,0.4);
+            color: #f87171;
+        }
+        /* زر التحميل في الهيدر */
+        #download-header-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: linear-gradient(135deg, #14b8a6, #0d9488);
+            color: #fff;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 0.45rem 1rem;
+            font-size: clamp(0.7rem, 2vw, 0.82rem);
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(20,184,166,0.4);
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+        #download-header-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.4s ease;
+        }
+        #download-header-btn:hover::before { left: 100%; }
+        #download-header-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(20,184,166,0.55);
+        }
+        #download-header-btn:active { transform: scale(0.97); }
+
+        /* =====================================================
            🔧 FIX 1: NAVIGATION BAR — شريط التنقل
            المشكلة: flex row مع نصوص عربية طويلة → طفح أفقي
            الحل: تحويله إلى grid 2×2 على الموبايل
@@ -343,15 +529,23 @@
                         التطبيقات الهندسية المتقدمة للتماثل الأسطواني وقانون جاوس
                     </p>
                 </div>
-                <!-- Navigation: nav-tabs class تُطبق grid 2x2 على الموبايل -->
-                <nav>
-                    <div class="nav-tabs">
-                        <button onclick="switchTab('intro')" id="btn-intro" class="tab-btn active">المقدمة</button>
-                        <button onclick="switchTab('sensor')" id="btn-sensor" class="tab-btn">المستشعرات السعوية</button>
-                        <button onclick="switchTab('esp')" id="btn-esp" class="tab-btn">المرسبات الكهروستاتيكية</button>
-                        <button onclick="switchTab('faraday')" id="btn-faraday" class="tab-btn">درع فاراداي</button>
-                    </div>
-                </nav>
+                <!-- Navigation + Download Button Row -->
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <!-- Navigation: nav-tabs class تُطبق grid 2x2 على الموبايل -->
+                    <nav>
+                        <div class="nav-tabs">
+                            <button onclick="switchTab('intro')" id="btn-intro" class="tab-btn active">المقدمة</button>
+                            <button onclick="switchTab('sensor')" id="btn-sensor" class="tab-btn">المستشعرات السعوية</button>
+                            <button onclick="switchTab('esp')" id="btn-esp" class="tab-btn">المرسبات الكهروستاتيكية</button>
+                            <button onclick="switchTab('faraday')" id="btn-faraday" class="tab-btn">درع فاراداي</button>
+                        </div>
+                    </nav>
+                    <!-- زر تحميل الأوراق البحثية -->
+                    <button id="download-header-btn" onclick="openDownloadModal()">
+                        <span>📥</span>
+                        <span>تحميل الأوراق البحثية</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -812,8 +1006,92 @@
         </button>
     </div>
 
+    <!-- ================================================
+         📥 DOWNLOAD MODAL
+         نافذة تحميل الأوراق البحثية
+         ================================================ -->
+    <div id="download-modal-overlay" onclick="handleModalOverlayClick(event)">
+        <div id="download-modal" role="dialog" aria-modal="true" aria-labelledby="download-modal-title">
+
+            <!-- زر الإغلاق -->
+            <button class="modal-close-btn" onclick="closeDownloadModal()" aria-label="إغلاق">✕</button>
+
+            <!-- العنوان -->
+            <div class="download-modal-title" id="download-modal-title">
+                <span>📄</span>
+                <span>تحميل الأوراق البحثية</span>
+            </div>
+            <p class="download-modal-subtitle">اختر الصيغة التي تناسبك لتحميل البحث العلمي</p>
+
+            <!-- الخيار 1: تحميل البحث بالعربية -->
+            <a href="التدفق الذكي تسخير قانون جاوس في أنظمة الاستشعار والتحكم (Smart Flux Harnessing Gauss's Law in Sensing %26 Control Systems).docx"
+               download
+               class="download-option"
+               id="dl-arabic">
+                <div class="dl-icon arabic">🇸🇦</div>
+                <div class="dl-info">
+                    <span class="dl-label">البحث باللغة العربية</span>
+                    <span class="dl-desc">التدفق الذكي — تسخير قانون جاوس · DOCX</span>
+                </div>
+                <span class="dl-arrow">←</span>
+            </a>
+
+            <!-- الخيار 2: تحميل البحث بالإنجليزية -->
+            <a href="Physical Analysis of Cylindrical Gaussian Surfaces and Their Industrial Applications A Case Study on Capacitive Sensors, Electrostatic Precipitators, and Faraday Shields.docx"
+               download
+               class="download-option"
+               id="dl-english">
+                <div class="dl-icon english">🇬🇧</div>
+                <div class="dl-info">
+                    <span class="dl-label">البحث باللغة الإنجليزية</span>
+                    <span class="dl-desc">Cylindrical Gaussian Surfaces · DOCX</span>
+                </div>
+                <span class="dl-arrow">←</span>
+            </a>
+
+            <!-- الخيار 3: تحميل العرض التقديمي -->
+            <a href="Physics Analysis of Cylindrical Gaussian Surfaces.pptx"
+               download
+               class="download-option"
+               id="dl-ppt">
+                <div class="dl-icon ppt">📊</div>
+                <div class="dl-info">
+                    <span class="dl-label">العرض التقديمي</span>
+                    <span class="dl-desc">Physics Analysis — Gaussian Surfaces · PPTX</span>
+                </div>
+                <span class="dl-arrow">←</span>
+            </a>
+
+        </div>
+    </div>
+
     <!-- JavaScript Logic -->
     <script>
+        // ================================================
+        // 📥 DOWNLOAD MODAL LOGIC
+        // ================================================
+        function openDownloadModal() {
+            document.getElementById('download-modal-overlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDownloadModal() {
+            document.getElementById('download-modal-overlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function handleModalOverlayClick(e) {
+            // أغلق فقط عند النقر على الخلفية وليس على المودال نفسه
+            if (e.target === document.getElementById('download-modal-overlay')) {
+                closeDownloadModal();
+            }
+        }
+
+        // إغلاق المودال بضغط Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDownloadModal();
+        });
+
         // --- 0. OpenRouter AI Integration ---
         
         // تمويه المفتاح لتخطي روبوتات الفحص التلقائي في GitHub
