@@ -229,11 +229,17 @@
             border-radius: 1.5rem;
             padding: 2rem;
             width: min(480px, calc(100vw - 2rem));
+            max-height: min(650px, calc(100vh - 3rem));
             box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(20,184,166,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
             transform: translateY(30px) scale(0.95);
             transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            overflow: hidden;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        #download-modal::-webkit-scrollbar {
+            display: none;
         }
         #download-modal::before {
             content: '';
@@ -247,6 +253,44 @@
         }
         #download-modal-overlay.open #download-modal {
             transform: translateY(0) scale(1);
+        }
+
+        /* Mobile Responsive Bottom Sheet & Viewport Protection */
+        @media (max-width: 640px) {
+            #download-modal-overlay {
+                align-items: flex-end; /* Align sheet to the bottom */
+            }
+            #download-modal {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 1.5rem 1.5rem 0 0; /* Rounded top corners only */
+                border-bottom: none;
+                border-left: none;
+                border-right: none;
+                padding: 1.75rem 1.25rem 2.5rem 1.25rem;
+                max-height: 80vh; /* Block at most 80% of screen height, leaving 20% visual breathing room */
+                transform: translateY(100%);
+                transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            #download-modal-overlay.open #download-modal {
+                transform: translateY(0);
+            }
+            #download-modal::before {
+                content: '';
+                position: absolute;
+                top: 0.5rem;
+                right: auto;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 40px;
+                height: 5px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 999px;
+                pointer-events: none;
+            }
+            .download-modal-title {
+                margin-top: 0.5rem;
+            }
         }
         .download-modal-title {
             font-size: 1.3rem;
@@ -651,7 +695,7 @@
                     <div class="flex items-center gap-2 flex-wrap">
                         <a href="Electric Field 2.5.apk" download id="download-app-btn">
                             <span>📱</span>
-                            <span data-i18n="dl-app-hdr">تحميل التطبيق</span>
+                            <span data-i18n="dl-app-hdr">تحميل الحاسبة</span>
                         </a>
                         <button id="download-header-btn" onclick="openDownloadModal()">
                             <span>📥</span>
@@ -710,16 +754,16 @@
                     <div class="absolute -left-16 -bottom-16 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-amber-500/20 transition-all duration-500"></div>
                     
                     <div class="flex-grow">
-                        <span class="inline-block px-3 py-1 bg-brand-500/20 border border-brand-500/40 rounded-full text-xs font-bold text-brand-400 mb-3" data-i18n="app-tag">تطبيق الهاتف المحمول 📱</span>
-                        <h3 class="text-xl md:text-2xl font-bold mb-2 text-white" data-i18n="app-title">تطبيق الهاتف الذكي: Electric Field v2.5</h3>
+                        <span class="inline-block px-3 py-1 bg-brand-500/20 border border-brand-500/40 rounded-full text-xs font-bold text-brand-400 mb-3" data-i18n="app-tag">أداة حساب التدفق والفيض 📊</span>
+                        <h3 class="text-xl md:text-2xl font-bold mb-2 text-white" data-i18n="app-title">تطبيق الهاتف الذكي: حاسبة التدفق الكهربائي v2.5</h3>
                         <p class="text-slate-300 text-sm md:text-base max-w-xl leading-relaxed" data-i18n="app-desc">
-                            احمل معك مختبر الفيزياء التفاعلي أينما كنت! قم بتحميل تطبيق الهاتف المحمول لتجربة محاكاة متقدمة واستكشاف خطوط المجال الكهربائي والجهد مباشرة على جهازك الذكي.
+                            احمل معك أداة الحسابات الفيزيائية المتقدمة أينما كنت! قم بتحميل تطبيق الهاتف المحمول لحساب التدفق (الفيض) الكهربائي بدقة من خلال إدخال المتغيرات الرياضية والهندسية مباشرة على جهازك الذكي.
                         </p>
                     </div>
                     <div class="flex-shrink-0 flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                         <a href="Electric Field 2.5.apk" download class="flex items-center justify-center gap-2 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:shadow-brand-500/30 transition-all duration-200">
                             <span>🤖</span>
-                            <span data-i18n="app-dl-btn">تحميل التطبيق (APK)</span>
+                            <span data-i18n="app-dl-btn">تحميل حاسبة التدفق (APK)</span>
                         </a>
                     </div>
                 </div>
@@ -1214,8 +1258,8 @@
                id="dl-apk">
                 <div class="dl-icon apk">🤖</div>
                 <div class="dl-info">
-                    <span class="dl-label" data-i18n="dl-lbl-apk">تطبيق الأندرويد (تفاعلي)</span>
-                    <span class="dl-desc" data-i18n="dl-desc-apk">Electric Field v2.5 · APK</span>
+                    <span class="dl-label" data-i18n="dl-lbl-apk">أداة حساب التدفق (Android)</span>
+                    <span class="dl-desc" data-i18n="dl-desc-apk">حساب التدفق والمجال الكهربائي بالمدخلات · APK</span>
                 </div>
                 <span class="dl-arrow">←</span>
             </a>
@@ -1260,13 +1304,13 @@
                 'nav-intro':'المقدمة','nav-sensor':'المستشعرات السعوية',
                 'nav-esp':'المرسبات الكهروستاتيكية','nav-faraday':'درع فاراداي',
                 'dl-btn':'تحميل الأوراق البحثية','lang-lbl':'EN',
-                'dl-app-hdr':'تحميل التطبيق',
-                'dl-lbl-apk':'تطبيق الهاتف المحمول (Android)',
-                'dl-desc-apk':'محاكاة تفاعلية للمجال الكهربائي · APK',
-                'app-tag':'تطبيق الهاتف المحمول 📱',
-                'app-title':'تطبيق الهاتف الذكي: Electric Field v2.5',
-                'app-desc':'احمل معك مختبر الفيزياء التفاعلي أينما كنت! قم بتحميل تطبيق الهاتف المحمول لتجربة محاكاة متقدمة واستكشاف خطوط المجال الكهربائي والجهد مباشرة على جهازك الذكي.',
-                'app-dl-btn':'تحميل التطبيق (APK)',
+                'dl-app-hdr':'تحميل الحاسبة',
+                'dl-lbl-apk':'أداة حساب التدفق (Android)',
+                'dl-desc-apk':'حساب التدفق والمجال الكهربائي بالمدخلات · APK',
+                'app-tag':'أداة حساب التدفق والفيض 📊',
+                'app-title':'تطبيق الهاتف الذكي: حاسبة التدفق الكهربائي v2.5',
+                'app-desc':'احمل معك أداة الحسابات الفيزيائية المتقدمة أينما كنت! قم بتحميل تطبيق الهاتف المحمول لحساب التدفق (الفيض) الكهربائي بدقة من خلال إدخال المتغيرات الرياضية والهندسية مباشرة على جهازك الذكي.',
+                'app-dl-btn':'تحميل حاسبة التدفق (APK)',
                 'intro-h2':'من المعادلات المجردة إلى الواقع الملموس',
                 'intro-p':'تكتسب النظريات الفيزيائية قيمتها الحقيقية عندما تتجاوز حيز المعادلات المجردة على الورق لتصبح حلولاً ملموسة تواجه التحديات الهندسية المعاصرة. في هذه المنصة التفاعلية، نستخدم الاستنتاجات الرياضية للتماثل الأسطواني لفك شفرة ثلاثة من أعقد التطبيقات في القطاع الصناعي الحديث.',
                 'intro-c1-h3':'قياس دقيق وآمن','intro-c1-p':'مستشعرات تعتمد على السعة الكهربائية لبيئات العمل الخطرة.',
@@ -1340,13 +1384,13 @@
                 'nav-intro':'Introduction','nav-sensor':'Capacitive Sensors',
                 'nav-esp':'Electrostatic Precipitators','nav-faraday':'Faraday Shield',
                 'dl-btn':'Download Research Papers','lang-lbl':'AR',
-                'dl-app-hdr':'Download App',
-                'dl-lbl-apk':'Mobile Application (Android)',
-                'dl-desc-apk':'Electric Field Interactive Simulator · APK',
-                'app-tag':'Mobile Application 📱',
-                'app-title':'Smart App: Electric Field v2.5',
-                'app-desc':'Take your interactive physics lab with you wherever you go! Download the mobile app for an advanced simulation experience and explore electric field lines and potentials directly on your smart device.',
-                'app-dl-btn':'Download App (APK)',
+                'dl-app-hdr':'Download Calculator',
+                'dl-lbl-apk':'Flux & Field Calculator (Android)',
+                'dl-desc-apk':'Input-driven electric field and flux calculator · APK',
+                'app-tag':'Flux Calculator Tool 📊',
+                'app-title':'Smart App: Electric Flux Calculator v2.5',
+                'app-desc':'Take your advanced physics calculations with you wherever you go! Download the mobile app to calculate electric flux precisely by inputting mathematical and engineering variables directly on your smart device.',
+                'app-dl-btn':'Download Flux Calculator (APK)',
                 'intro-h2':'From Abstract Equations to Tangible Reality',
                 'intro-p':'Physical theories gain their true value when they transcend abstract equations on paper to become tangible solutions to contemporary engineering challenges. In this interactive platform, we use the mathematical derivations of cylindrical symmetry to decode three of the most complex applications in modern industry.',
                 'intro-c1-h3':'Precise & Safe Measurement','intro-c1-p':'Sensors based on electrical capacitance for hazardous industrial environments.',
